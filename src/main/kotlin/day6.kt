@@ -9,6 +9,8 @@ fun main() {
     val width = points.maxBy { it.x }!!.x
     val height = points.maxBy { it.y }!!.y
 
+    // pt 1
+
     // walk around the plane to identify the points that are outside
     val pointsOutside = mutableSetOf<Point>()
 
@@ -43,6 +45,20 @@ fun main() {
 
     val point = areasByPoint.filter { it.key !in pointsOutside }.maxBy { it.value }
     println(point)
+
+    // pt 2
+
+    var sum = 0
+
+    for (x in 0 until width) {
+        for (y in 0 until height) {
+            if (points.sumBy { it.distanceTo(x, y) } < 10_000) {
+                sum++
+            }
+        }
+    }
+
+    println(sum)
 }
 
 private var letter = 'A'
