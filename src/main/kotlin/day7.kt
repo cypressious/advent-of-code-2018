@@ -5,23 +5,33 @@ import day1.readLines
 private val regex = "Step ([A-Z]) must be finished before step ([A-Z]) can begin.".toRegex()
 
 fun main() {
-    val nodes = mutableMapOf<String, Node>()
+    val nodesMap = mutableMapOf<Char, Node>()
 
-    fun node(name: String) = nodes.getOrPut(name) { Node(name) }
+    fun node(name: Char) = nodesMap.getOrPut(name) { Node(name) }
 
     for (line in readLines("/day7/1.txt")) {
         val values = regex.matchEntire(line)!!.groupValues
-        val from = node(values[1])
-        val to = node(values[2])
+        val from = node(values[1][0])
+        val to = node(values[2][0])
 
         from.comesBefore(to)
     }
 
-    val nodesSorted = nodes.values.sortedBy { it.name }
+    val nodes = nodesMap.values.sortedBy(Node::name)
+
+    sequential(nodes)
+    parallel(nodes)
+}
+
+private fun sequential(nodes: List<Node>) {
+    val done = mutableSetOf<Node>()
+
+    fun Node.isDone() = this in done
+    fun Node.isReady() = !isDone() && incoming.all(Node::isDone)
 
     while (true) {
-        val next = nodesSorted
-            .firstOrNull { !it.isDone && it.incoming.all(Node::isDone) }
+        val next = nodes
+            .firstOrNull(Node::isReady)
 
         if (next == null) {
             println()
@@ -29,20 +39,53 @@ fun main() {
         }
 
         print(next.name)
-        next.isDone = true
+        done += next
     }
 }
 
-private class Node(val name: String) {
-    var isDone = false
 
-    val outgoing = mutableSetOf<Node>()
-    val incoming = mutableSetOf<Node>()
+private fun parallel(nodes: List<Node>) {
+    val done = mutableSetOf<Node>()
+    val remaining = nodes
+        .associateByTo(mutableMapOf(), { it }, { 60 + (it.name - 'A') })
 
-    fun comesBefore(other: Node) {
-        outgoing += other
-        other.incoming += this
+    fun Node.isDone() = this in done
+    fun Node.isReady() = !isDone() && incoming.all(Node::isDone)
+
+    var time = 0
+    val workers = arrayOfNulls<Node>(5)
+
+    while (nodes.any { !it.isDone() }) {
+        workers.forEach { node ->
+            node?.let { remaining[node] = remaining[node]!! - 1 }
+        }
+
+        for (i in 0..4) {
+            val node = workers[i]
+            if (node != null && remaining[node]!! < 0) {
+                done += node
+                workers[i] = null
+            }
+        }
+
+        for (i in 0..4) {
+            if (workers[i] == null) {
+                workers[i] = nodes.firstOrNull { it.isReady() && it !in workers }
+            }
+        }
+
+        if (workers.any { it != null }) {
+            time++
+        }
     }
 
-    override fun toString() = "$name -> ${outgoing.joinToString { it.name }}"
+    println(time)
+}
+
+private data class Node(val name: Char) {
+    val incoming: MutableSet<Node> = mutableSetOf()
+
+    fun comesBefore(other: Node) {
+        other.incoming += this
+    }
 }
