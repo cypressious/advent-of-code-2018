@@ -19,9 +19,16 @@ fun main() {
 
     val root = parseNode()
 
-    fun Node.sum(): Int = metadata.sum() + children.sumBy { it.sum() }
+    fun Node.sum1(): Int = metadata.sum() + children.sumBy { it.sum1() }
+    println(root.sum1())
 
-    println(root.sum())
+    fun Node.sum2(): Int {
+        if (children.isEmpty()) return metadata.sum()
+
+        return metadata.sumBy { children.elementAtOrNull(it - 1)?.sum2() ?: 0 }
+    }
+
+    println(root.sum2())
 }
 
 
