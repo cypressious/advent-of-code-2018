@@ -13,6 +13,7 @@ fun main() {
             Point(x.number, y.number, dx.number, dy.number)
         }
 
+    var i = 0
 
     while (true) {
         val minX = points.minBy { it.x }!!.x
@@ -28,10 +29,12 @@ fun main() {
                 println()
             }
 
+            println(i)
             if (readLine() == "q") return
         }
 
         points = points.map(Point::next)
+        i++
     }
 }
 
