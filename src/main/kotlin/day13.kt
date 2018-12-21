@@ -5,21 +5,36 @@ import day13.Direction.*
 import day13.Tile.*
 
 fun main() {
-    handle(readLines("/day13/test.txt"))
+    handle(readLines("/day13/test1.txt"))
     handle(readLines("/day13/1.txt"))
+    handle(readLines("/day13/test2.txt"), true)
+    handle(readLines("/day13/1.txt"), true)
 }
 
-private fun handle(input: List<String>) {
+private fun handle(input: List<String>, removeCrashed: Boolean = false) {
     val map = createMap(input)
 
     val comparator = compareBy(Cart::y, Cart::x)
 
     while (true) {
+
         for (cart in map.carts.sortedWith(comparator)) {
-            if (cart.move(map)) {
-                println("${cart.x},${cart.y}")
-                return
+            val crashedInto = cart.move(map)
+
+            if (crashedInto != null) {
+                if (removeCrashed) {
+                    map.carts.remove(cart)
+                    map.carts.remove(crashedInto)
+                } else {
+                    println(cart)
+                    return
+                }
             }
+        }
+
+        if (map.carts.size == 1) {
+            println(map.carts.single())
+            return
         }
     }
 }
@@ -70,7 +85,7 @@ private class Map(val width: Int, val height: Int) {
         return "Map(width=$width, height=$height, carts=${carts.joinToString()})"
     }
 
-    fun render() = buildString {
+    @Suppress("unused") fun render() = buildString {
         for (y in 0 until height) {
             for (x in 0 until width) {
                 append(
@@ -93,13 +108,18 @@ private val intersectionChoices = IntersectionChoice.values()
 private class Cart(var dir: Direction, var x: Int, var y: Int) {
     var nextIntersectionChoice = IntersectionChoice.Left
 
-    fun move(map: Map): Boolean {
+    fun move(map: Map): Cart? {
         x += dir.dx
         y += dir.dy
 
-        if (map.carts.any { it != this && it.x == x && it.y == y }) {
+        check(x in 0 until map.width)
+        check(y in 0 until map.height)
+
+        val crashedInto = map.carts.firstOrNull { it != this && it.x == x && it.y == y }
+
+        if (crashedInto != null) {
             //crash
-            return true
+            return crashedInto
         }
 
         val tile = map[x, y]
@@ -120,7 +140,10 @@ private class Cart(var dir: Direction, var x: Int, var y: Int) {
             }
 
             Intersection -> {
-                dir = directions[Math.floorMod(dir.ordinal + nextIntersectionChoice.rotation, directions.size)]
+                dir = directions[Math.floorMod(
+                    dir.ordinal + nextIntersectionChoice.rotation,
+                    directions.size
+                )]
 
                 nextIntersectionChoice =
                     intersectionChoices[(nextIntersectionChoice.ordinal + 1) % intersectionChoices.size]
@@ -131,7 +154,7 @@ private class Cart(var dir: Direction, var x: Int, var y: Int) {
             }
         }
 
-        return false
+        return null
     }
 
     override fun toString(): String {
