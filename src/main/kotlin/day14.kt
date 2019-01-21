@@ -3,11 +3,7 @@ package day14
 import day1.Node
 
 fun main() {
-//    doStuff(765071)
-    doStuff(51589, true)
-    doStuff(1245, true)
-    doStuff(92510, true)
-    doStuff(59414, true)
+    doStuff(765071)
     doStuff(765071, true)
 }
 
