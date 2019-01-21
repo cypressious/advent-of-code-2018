@@ -32,4 +32,4 @@ fun main() {
 }
 
 
-class Node(val children: List<Node>, val metadata: List<Int>)
+private class Node(val children: List<Node>, val metadata: List<Int>)

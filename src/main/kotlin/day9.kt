@@ -1,5 +1,7 @@
 package day9
 
+import day1.Node
+
 fun main() {
     play(9, 25)
     play(10, 1618)
@@ -34,32 +36,4 @@ private fun play(countPlayers: Int, lastMarble: Int) {
     }
 
     println(scores.max()!!)
-}
-
-private class Node(val value: Int) {
-    lateinit var next: Node
-    lateinit var previous: Node
-
-    fun insertAfter(node: Node) {
-        node.previous = this
-        next.previous = node
-
-        node.next = next
-        next = node
-    }
-
-    fun remove() = apply {
-        previous.next = next
-        next.previous = previous
-    }
-
-    fun next(i: Int): Node {
-        var result = this
-
-        repeat(Math.abs(i)) {
-            result = if (i > 0) result.next else result.previous
-        }
-
-        return result
-    }
 }
