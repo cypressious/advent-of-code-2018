@@ -60,6 +60,18 @@ class Node(val value: Int) {
         } while (n != until)
     }
 
+    fun distanceTo(node: Node): Int {
+        var n = this
+        var result = 0
+
+        while (n != node) {
+            n = n.next
+            result++
+        }
+
+        return result
+    }
+
     companion object {
         fun root(value: Int) = Node(value).apply {
             next = this
